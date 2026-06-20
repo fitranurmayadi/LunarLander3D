@@ -187,6 +187,11 @@ This controller uses a Finite State Machine (FSM) combined with decoupled PID co
 - Inefficient and slow trajectory.
 - Stops at invisible "waypoints" before proceeding to the next state, causing a robotic, step-by-step flight path.
 
+**Uji V1 (spawn=-1000 -1000 1000, orient=45 45 45; 1 episode; no-dashboard/no-render):**
+
+![V1 Report](reports/mission_v1_ep1_report.png)
+
+
 ### Mission V2: Direct Vectoring
 **Concept:**
 Unlike V1, V2 blends transit and landing phases. It uses **Direct Thrust Vectoring** where the horizontal error is mapped directly to a tilted thrust vector. The controller continuously updates its orientation to point the thrust vector opposite to the velocity vector while simultaneously aiming for the landing pad.
@@ -198,6 +203,11 @@ Unlike V1, V2 blends transit and landing phases. It uses **Direct Thrust Vectori
 **Cons:**
 - Strongly coupled dynamics (pitching to move laterally inherently reduces vertical lift).
 - Difficult to tune the safety envelope to prevent the lander from tumbling at high speeds.
+
+**Uji V2 (spawn=-1000 -1000 1000, orient=45 45 45; 1 episode; no-dashboard/no-render):**
+
+![V2 Report](reports/mission_v2_ep1_report.png)
+
 
 ### Mission V3: High-Precision Trajectory Mastery
 **Concept:**
@@ -213,6 +223,11 @@ This is the most advanced controller. It abandons simple error-based PID in favo
 **Cons:**
 - Computationally heavy.
 - Very sensitive to simulation step-size variations ($dt$). If PyBullet stutters, the trajectory tracking error diverges rapidly.
+
+**Uji V3 (spawn=-1000 -1000 1000, orient=45 45 45; 1 episode; no-dashboard/no-render):**
+
+![V3 Report](reports/mission_v3_ep1_report.png)
+
 
 ---
 
