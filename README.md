@@ -216,6 +216,66 @@ This is the most advanced controller. It abandons simple error-based PID in favo
 
 ---
 
+## 🛰️ Wahana & Lingkungan (Model fisik)
+
+### Wahana (Lander) — ukuran, massa, dan aktuator
+Model lander berbasis **Apollo/Lunar Lander** namun disederhanakan (terutama geometri/rig detail dan mekanisme) agar tetap stabil untuk kontrol RL—lebih mirip “legonya” (clean, modular), dengan **scaling Apollo 4×** seperti yang dipakai pada mesh/URDF.
+
+**Skala / ukuran utama (dari komentar & URDF):**
+- Main body: skala mesh **4×**.
+- Komentar URDF menyebut **diameter ~4 m** dan **tinggi ~4 m** pada versi yang sudah di-skalakan (Apollo-scaled).
+
+**Massa (komponen URDF, penjumlahan massa link):**
+- Main body: **3500 kg**
+- Main thruster: **500 kg**
+- RCS (4 klaster): masing-masing **100 kg** → total **400 kg**
+- 4 kaki: masing-masing **150 kg** → total **600 kg**
+- 4 sensor kaki: masing-masing **0.01 kg** → total **0.04 kg**
+- **Total massa aproksimasi:** **~5100.04 kg**
+
+**Thruster / kemampuan kendali (sesuai environment code):**
+- **Main thruster**
+  - 1 aktuator, gaya maksimum: **22,000 N**
+  - Arah dorong: sumbu **+Z** pada body frame
+  - Posisi nozzle (local): **(0, 0, -6.0) m** (nozzle exit ~6 m di bawah center body pada model)
+- **RCS (Reaction Control System)**
+  - 20 aktuator (4 grup × 5 nozzle)
+  - Gaya maksimum per nozzle: **5,000 N** (pakai skala `rcs_thruster_force_scale = 5000`)
+  - Klaster (local origin) pada body frame:
+    - front: **(+2.8, 0, 2.4)**
+    - back: **(-2.8, 0, 2.4)**
+    - left: **(0, +2.8, 2.4)**
+    - right: **(0, -2.8, 2.4)**
+  - Strategi nozzle mengaktifkan gaya ke arah **±X / ±Y / ±Z** untuk kontrol translasi lateral & torque attitude.
+
+### Lingkungan — planet, gravitasi, angin, dan terrain
+Lingkungan mensimulasikan **vakum (tanpa damping)** ala luar angkasa, namun tetap menambahkan gangguan eksternal untuk membuat episode lebih realistis & menantang.
+
+**Mode planet (parameter dari env):**
+| Planet | Gravity (m/s²) | Drag | Wind (opsional) |
+|---|---:|---:|---|
+| **Earth** | -9.8 | `drag_coeff` (default 0.5) | default `wind_force=15`, `wind_freq=0.1` |
+| **Moon** (default) | -1.62 | 0.0 (drag mati) | wind dimatikan (`0.0`) |
+| **Mars** | -3.711 | 0.3 | `wind_force=10`, `wind_freq=0.1` |
+
+**Terrain (procedural heightfield):**
+- Grid: **256 × 256**
+- Ukuran area: pakai `mesh_scale=[5,5,1]`
+  - Jarak antar sampel XY = **5 m**
+  - Total area ≈ **1.28 km × 1.28 km**
+- Height shaping:
+  - `height_scale = 5.0` (amplitudo perbukitan)
+  - tinggi dibentuk dari kombinasi sine/cos + micro-roughness
+- **Landing pad datar**:
+  - zona datar berdasarkan radius dari center: **r ≤ 30 m** (blend 0 di dalamnya)
+  - landing pad visual: **radius 2.5 m** (diameter 5 m)
+
+**Physics / timestep**
+- PyBullet: **100 Hz** (`render_fps = 100` → `setTimeStep(1/100)`)
+- Tidak ada damping line/angular/joint (vakum): `linearDamping=0`, `angularDamping=0`, `jointDamping=0`
+
+---
+
 ## 🌍 Environment Specifications
 
 | Property | Value |
@@ -230,3 +290,4 @@ This is the most advanced controller. It abandons simple error-based PID in favo
 
 ## 📄 License
 This project is for educational and research purposes.
+
