@@ -1,4 +1,4 @@
-// mission_v1_classic.py copied for GitHub release
+# mission_v1_classic.py copied for GitHub release
 import gymnasium as gym
 import lunar_lander_3d
 import numpy as np
