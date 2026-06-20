@@ -7,6 +7,11 @@ import math
 import time
 import os
 from enum import Enum
+try:
+    import osc_sender
+    _OSC_AVAILABLE = True
+except ImportError:
+    _OSC_AVAILABLE = False
 
 class ControlState(Enum):
     RECOVERY           = 1 # Target 1: Recover from random tumble
@@ -241,7 +246,11 @@ def run_test():
     parser.add_argument('--spawn', type=float, nargs=3, metavar=('X','Y','Z'), help='Custom spawn position')
     parser.add_argument('--orient', type=float, nargs=3, metavar=('R','P','Y'), help='Custom orientation in degrees')
     parser.add_argument('--no-render', action='store_true', help='Run without PyBullet GUI rendering')
+    parser.add_argument('--no-dashboard', action='store_true', help='Disable live OSC telemetry dashboard')
     args = parser.parse_args()
+    use_osc = _OSC_AVAILABLE and not args.no_dashboard
+    if use_osc:
+        osc_sender.init()
     render_mode = None if args.no_render else "human"
     env = gym.make('LunarLander3D-v1', render_mode=render_mode)
     TOTAL_EPISODES = 4 if args.fixed else args.episodes
@@ -251,6 +260,8 @@ def run_test():
     for ep in range(TOTAL_EPISODES):
         label = fixed_labels[ep % 4] if args.fixed else "RANDOM"
         print(f"\n=== EPISODE {ep+1} / {TOTAL_EPISODES} ({label}) ===")
+        if use_osc:
+            osc_sender.send_episode(ep + 1, label)
         if args.spawn:
             start_x,start_y,start_z = args.spawn
             r,p,y = [math.radians(v) for v in args.orient] if args.orient else [0,0,0]
@@ -297,6 +308,15 @@ def run_test():
             log_data["dist_h"].append(debug["dist_h"])
             log_data["g_force"].append(debug["g_force"])
             log_data["state"].append(debug["state"])
+            # --- OSC telemetry (every 50 steps) ---
+            if use_osc and i % 50 == 0:
+                cum_r = float(np.sum(log_data["reward"]))
+                osc_sender.send_state(i, float(pos_real[2]), float(vel_real[2]),
+                                      float(debug["dist_h"]), float(reward),
+                                      int(debug["state"]), cum_r)
+                osc_sender.send_attitude(float(att_real[0]), float(att_real[1]), float(att_real[2]))
+                osc_sender.send_velocity(float(vel_real[0]), float(vel_real[1]), float(vel_real[2]))
+                osc_sender.send_action(float(action[0]), float(np.mean(action[1:])), float(debug["g_force"]))
             if not args.no_render:
                 time.sleep(ctrl.dt/10.0)
             if done or trunc:

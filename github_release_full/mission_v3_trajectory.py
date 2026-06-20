@@ -8,6 +8,11 @@ import gymnasium as gym
 import os, sys
 # Ensure project root is in PYTHONPATH for local modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+try:
+    import osc_sender
+    _OSC_AVAILABLE = True
+except ImportError:
+    _OSC_AVAILABLE = False
 
 # Safe import of lunar_lander_3d (may be optional)
 try:
@@ -189,7 +194,11 @@ def run():
     parser.add_argument('--spawn', type=float, nargs=3, metavar=('X','Y','Z'), help='Custom spawn position')
     parser.add_argument('--orient', type=float, nargs=3, metavar=('R','P','Y'), help='Custom orientation in degrees')
     parser.add_argument('--no-render', action='store_true', help='Disable GUI rendering')
+    parser.add_argument('--no-dashboard', action='store_true', help='Disable live OSC telemetry dashboard')
     args = parser.parse_args()
+    use_osc = _OSC_AVAILABLE and not args.no_dashboard
+    if use_osc:
+        osc_sender.init()
     
     render = None if args.no_render else "human"
     env = gym.make("LunarLander3D-v1", render_mode=render)
@@ -205,6 +214,8 @@ def run():
     for ep in range(TOTAL_EPISODES):
         label = fixed_labels[ep % 4] if args.fixed else "RANDOM"
         print(f"\n=== EPISODE {ep + 1} / {TOTAL_EPISODES} ({label}) ===")
+        if use_osc:
+            osc_sender.send_episode(ep + 1, label)
         
         if args.spawn:
             sp = np.array(args.spawn)
@@ -298,6 +309,16 @@ def run():
             log["pos"].append(cp); log["ref"].append(ref_p); log["att"].append(att)
             log["vel"].append(cv); log["ang_vel"].append(ang_vel); log["act"].append(action)
             log["ry"].append(ctrl.target_y); log["reward"].append(reward); log["g_force"].append(g_force)
+            # --- OSC telemetry (every 50 steps) ---
+            if use_osc and i % 50 == 0:
+                cum_r = float(sum(log["reward"]))
+                dist_h = float(np.linalg.norm(cp[:2]))
+                att_deg = [float(a * 180 / np.pi) for a in att[:3]]
+                osc_sender.send_state(i, float(cp[2]), float(cv[2]), dist_h,
+                                      float(reward), 2, cum_r)
+                osc_sender.send_attitude(att_deg[0], att_deg[1], att_deg[2])
+                osc_sender.send_velocity(float(cv[0]), float(cv[1]), float(cv[2]))
+                osc_sender.send_action(float(action[0]), float(np.mean(action[1:])), float(g_force))
             
             if np.any(contacts > 0.1) and cp[2] < (target_h + 1.0):
                 print(f"--- SUCCESSFUL TOUCHDOWN AT T={t:.2f} ---")
