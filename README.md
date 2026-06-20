@@ -46,15 +46,8 @@ pip install -r requirements.txt
 
 > **Note:** It is highly recommended to use a virtual environment (e.g., `python -m venv venv`).
 
-### Optional: Window Positioning (Linux/X11)
-For automatic window layout (dashboard + PyBullet side-by-side), install `xdotool`:
-```bash
-sudo apt install xdotool
-```
-
----
-
 ## 🎮 Usage & Mission Testing
+
 
 ### Running a Single Mission Directly
 ```bash
