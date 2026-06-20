@@ -5,6 +5,7 @@ import numpy as np
 import pybullet as p
 import math
 import time
+import os
 from enum import Enum
 
 class ControlState(Enum):
@@ -343,7 +344,8 @@ def run_test():
         ax6_s.plot(t,log_data["state"],'k:')
         ax6.set_title('Mission Performance'); ax6.set_ylabel('Reward'); ax6_s.set_ylabel('State ID')
         plt.tight_layout()
-        filename = f'mission_v1_ep{ep+1}_report.png'
+        os.makedirs('reports', exist_ok=True)
+        filename = f'reports/mission_v1_ep{ep+1}_report.png'
         plt.savefig(filename)
         print(f"Saved Report to {filename}")
         plt.close(fig)

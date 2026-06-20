@@ -177,6 +177,7 @@ def report(log, name='mission_v3_ep1_report.png'):
     ax6.grid(True); ax6.legend(loc='upper left'); ax6_r.legend(loc='upper right')
     
     plt.tight_layout()
+    os.makedirs('reports', exist_ok=True)
     plt.savefig(name)
     plt.close()
 
@@ -185,6 +186,8 @@ def run():
     parser = argparse.ArgumentParser(description='Lunar Lander 3D Mission V3 (Trajectory Mastery)')
     parser.add_argument('--episodes', type=int, default=1, help='Number of episodes to run')
     parser.add_argument('--fixed', action='store_true', help='Compass Test: Run 4 quadrants (SW, NW, SE, NE) at 1km with 45deg tilt')
+    parser.add_argument('--spawn', type=float, nargs=3, metavar=('X','Y','Z'), help='Custom spawn position')
+    parser.add_argument('--orient', type=float, nargs=3, metavar=('R','P','Y'), help='Custom orientation in degrees')
     parser.add_argument('--no-render', action='store_true', help='Disable GUI rendering')
     args = parser.parse_args()
     
@@ -192,6 +195,7 @@ def run():
     env = gym.make("LunarLander3D-v1", render_mode=render)
     
     TOTAL_EPISODES = 4 if args.fixed else args.episodes
+    base_seed = int(time.time())
     fixed_points = [
         [-1000, -1000, 1000], [-1000, 1000, 1000],
         [1000, -1000, 1000], [1000, 1000, 1000]
@@ -202,12 +206,21 @@ def run():
         label = fixed_labels[ep % 4] if args.fixed else "RANDOM"
         print(f"\n=== EPISODE {ep + 1} / {TOTAL_EPISODES} ({label}) ===")
         
-        if args.fixed:
+        if args.spawn:
+            sp = np.array(args.spawn)
+            sa = [math.radians(v) for v in args.orient] if args.orient else [0, 0, 0]
+            print(f"Spawn (CUSTOM): X={sp[0]:.1f}, Y={sp[1]:.1f}, Z={sp[2]:.1f}")
+        elif args.fixed:
             sp = np.array(fixed_points[ep % 4])
             sa = [np.radians(45), np.radians(45), np.radians(45)]
+            print(f"Spawn (FIXED-{label}): X={sp[0]:.1f}, Y={sp[1]:.1f}, Z={sp[2]:.1f}")
+            print("Attitude (FIXED): R=45.0, P=45.0, Y=45.0")
         else:
-            sp = np.array([1000.0, 1000.0, 1000.0])
-            sa = [0.0, 0.0, np.arctan2(1000, 1000)]
+            np.random.seed(base_seed + ep)
+            sp = np.array([np.random.uniform(-900, 900), np.random.uniform(-900, 900), 1000.0])
+            sa = [np.random.uniform(-0.5, 0.5), np.random.uniform(-0.5, 0.5), np.random.uniform(-3.14, 3.14)]
+            print(f"Spawn: X={sp[0]:.1f}, Y={sp[1]:.1f}, H={sp[2]:.1f}")
+            print(f"Attitude: R={math.degrees(sa[0]):.1f}, P={math.degrees(sa[1]):.1f}, Y={math.degrees(sa[2]):.1f}")
             
         obs, _ = env.reset(options={"spawn_pos": sp.tolist(), "spawn_att": sa})
         
@@ -293,7 +306,7 @@ def run():
             if i % 2000 == 0:
                 print(f"T={t:5.1f} | Pos={cp} | Lag={np.linalg.norm(ref_p-cp):.2f}m")
                 
-        report_name = f"mission_v3_ep{ep+1}_report.png"
+        report_name = f"reports/mission_v3_ep{ep+1}_report.png"
         report(log, report_name)
         print(f"EPISODE {ep+1} ANALYSIS COMPLETE: {report_name}")
         
