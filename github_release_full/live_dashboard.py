@@ -24,8 +24,8 @@ from pythonosc import osc_server
 OSC_IP   = "127.0.0.1"
 OSC_PORT = 9001
 MAX_LEN  = 2000       # How many steps to keep in rolling buffer
-WIN_W    = 1060       # pixels wide
-WIN_H    = 940        # pixels tall
+WIN_W    = 800        # pixels wide
+WIN_H    = 800        # pixels tall
 WIN_X    = 20         # position: left side of screen
 WIN_Y    = 60         # position: top margin
 
