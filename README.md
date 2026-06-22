@@ -2,44 +2,123 @@
 
 ![LunarLander3D running](images/running_image_example.png)
 
-LunarLander3D is a custom, high-fidelity 3D Reinforcement Learning environment built on top of [Gymnasium](https://gymnasium.farama.org/) and simulated using [PyBullet](https://pybullet.org/). It extends the classic 2D Lunar Lander into a fully 3D world with 6 Degrees of Freedom (6-DoF), realistic rigid-body physics, and complex control challenges.
+LunarLander3D is a high-fidelity 6-Degree-of-Freedom (6-DoF) lunar landing simulation environment built with Gymnasium and PyBullet.
 
+The project was originally started as an attempt to compare Reinforcement Learning and conventional control methods on an autonomous landing task. While existing LunarLander benchmarks provide a useful starting point, most operate in a simplified 2D setting and do not capture many of the challenges encountered in real flight-control systems.
 
-## 🚀 Features
-- **Full 3D Physics:** 6-DoF rigid body dynamics with gravity ($g = -1.62 \, m/s^2$).
-- **Realistic Actuators:** Main thruster for vertical lift and RCS (Reaction Control System) thrusters for pitch, roll, yaw, and lateral translations.
-- **Multiple Control Baselines:** Includes three distinct conventional control strategies (V1, V2, V3) ranging from classical PID to advanced rigid-body trajectory tracking.
-- **Live Telemetry Dashboard:** Real-time Matplotlib dashboard with OSC telemetry for monitoring altitude, attitude, velocity, G-force, and more.
-- **Smart Launcher:** Runs the mission and (optionally) the live dashboard. Window auto-positioning was removed for better portability.
+To address this limitation, LunarLander3D extends the classic Lunar Lander concept into a fully 3D environment featuring rigid-body dynamics, realistic actuator models, procedural terrain generation, and multiple autonomous landing controllers.
 
+The current focus of the project is Guidance, Navigation, and Control (GNC) research. Three controller architectures are included, ranging from classical PID control to trajectory-tracking methods. The environment is also designed to serve as a future testbed for Reinforcement Learning algorithms operating under realistic physical constraints.
 
-## 📁 Project Structure
-```
+---
+
+# Project Motivation
+
+This project began with a simple question:
+
+> How does Reinforcement Learning compare against conventional flight-control methods on an autonomous landing problem?
+
+Initially, the goal was to use the standard LunarLander environment provided by Gymnasium. However, its 2D nature limits the complexity of the control problem and does not fully represent the challenges involved in spacecraft guidance and landing.
+
+Rather than modifying the existing benchmark, a new environment was developed from scratch with the following objectives:
+
+- Simulate a realistic 3D landing scenario.
+- Model full rigid-body dynamics.
+- Support multiple control architectures.
+- Provide a common platform for comparing control strategies.
+- Serve as a future benchmark for Reinforcement Learning research.
+
+The result is a flexible simulation platform that can be used to study:
+
+- Autonomous landing
+- Flight control
+- Guidance systems
+- Trajectory generation
+- Robotics
+- Reinforcement Learning
+
+---
+
+# 🚀 Features
+
+## Physics & Simulation
+
+- Full 6-DoF rigid-body dynamics.
+- High-frequency PyBullet simulation (100 Hz).
+- Multiple planetary environments:
+  - Moon (default)
+  - Earth
+  - Mars
+- Procedurally generated terrain with dedicated landing zones.
+- Continuous observation and action spaces.
+
+## Vehicle Model
+
+- Apollo-inspired lunar lander configuration.
+- Main engine for primary thrust generation.
+- 20 RCS thrusters for attitude and lateral control.
+- Realistic force and torque application through PyBullet.
+
+## Guidance & Control
+
+Three autonomous landing controllers are currently implemented:
+
+- V1 — Decoupled PID Control
+- V2 — Direct Thrust Vectoring
+- V3 — Reference Trajectory Tracking
+
+These controllers provide baseline performance references and demonstrate different approaches to solving the landing problem.
+
+## Monitoring & Analysis
+
+- Real-time telemetry dashboard.
+- OSC-based telemetry streaming.
+- Automatic mission performance reports.
+- Episode visualization and performance analysis.
+
+## Research Platform
+
+- Gymnasium-compatible API.
+- Continuous control environment.
+- Suitable for:
+  - Guidance, Navigation & Control (GNC)
+  - Robotics research
+  - Autonomous systems
+  - Reinforcement Learning
+  - Optimal control research
+
+---
+
+# 📁 Project Structure
+
+```text
 LunarLander3D/
-├── README.md                   # This file
-├── requirements.txt            # Python dependencies
+├── README.md
+├── requirements.txt
 ├── .gitignore
-├── launch_mission.sh           # Smart launcher (with optional dashboard)
-├── live_dashboard.py           # Real-time telemetry dashboard (OSC)
-├── osc_sender.py               # OSC telemetry sender module
-├── trajectory_planner.py       # Quintic polynomial trajectory planner (V3)
-├── mission_v1_classic.py       # Mission V1: Classic Decoupled PID
-├── mission_v2_direct.py        # Mission V2: Direct Thrust Vectoring
-├── mission_v3_trajectory.py    # Mission V3: Trajectory Tracking
-├── lunar_lander_3d/            # Gymnasium environment package
+├── launch_mission.sh
+├── live_dashboard.py
+├── osc_sender.py
+├── trajectory_planner.py
+├── mission_v1_classic.py
+├── mission_v2_direct.py
+├── mission_v3_trajectory.py
+├── lunar_lander_3d/
 │   ├── __init__.py
 │   └── envs/
 │       ├── __init__.py
-│       ├── lunar_lander_env.py # Core environment (34D obs, 21D action)
+│       ├── lunar_lander_env.py
 │       └── assets/
 │           ├── lunar_lander.urdf
-│           └── meshes/         # 3D mesh files (.dae)
-└── reports/                    # Auto-generated mission report charts
+│           └── meshes/
+└── reports/
 ```
 
-## 🛠️ Installation
+---
 
-Clone the repository and install the required dependencies:
+# 🛠️ Installation
+
+Clone the repository and install the required dependencies.
 
 ```bash
 git clone https://github.com/fitranurmayadi/LunarLander3d.git
@@ -47,28 +126,37 @@ cd LunarLander3d
 pip install -r requirements.txt
 ```
 
-> **Note:** It is highly recommended to use a virtual environment (e.g., `python -m venv venv`).
+Recommended:
 
-## 🎮 Usage & Mission Testing
-
-
-### Running a Single Mission Directly
 ```bash
-python mission_v1_classic.py       # V1: Classic Decoupled PID
-python mission_v2_direct.py        # V2: Direct Thrust Vectoring
-python mission_v3_trajectory.py    # V3: Trajectory Tracking
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
-### Using the Smart Launcher (with Live Dashboard)
-The `launch_mission.sh` script starts the live dashboard alongside the mission and automatically positions windows side-by-side:
+---
+
+# 🎮 Running Missions
+
+## Direct Execution
 
 ```bash
-# With live dashboard (default)
+python mission_v1_classic.py
+python mission_v2_direct.py
+python mission_v3_trajectory.py
+```
+
+## Using the Mission Launcher
+
+```bash
 ./launch_mission.sh v1
 ./launch_mission.sh v2
 ./launch_mission.sh v3
+```
 
-# Without live dashboard
+Without dashboard:
+
+```bash
 ./launch_mission.sh v1 --no-dashboard
 ./launch_mission.sh v2 --no-dashboard
 ./launch_mission.sh v3 --no-dashboard
@@ -76,231 +164,272 @@ The `launch_mission.sh` script starts the live dashboard alongside the mission a
 
 ---
 
-## 📋 Shared Command-Line Arguments
-All mission scripts (`mission_v1_classic.py`, `mission_v2_direct.py`, `mission_v3_trajectory.py`) share the same standardized arguments:
+# 📋 Command-Line Arguments
 
-| Argument | Description | Example |
-|----------|-------------|---------|
-| `--episodes N` | Run N consecutive episodes (default: 1) | `--episodes 3` |
-| `--fixed` | Compass Test: Spawn in 4 quadrants (SW, NW, SE, NE) at 1km with 45° tilt | `--fixed` |
-| `--spawn X Y Z` | Custom spawn position (meters) | `--spawn -1000 -1000 1000` |
-| `--orient R P Y` | Custom initial orientation in degrees (Roll, Pitch, Yaw) | `--orient 45 45 45` |
-| `--no-render` | Run headless without PyBullet GUI (fast testing) | `--no-render` |
-| `--no-dashboard` | Disable live OSC telemetry to dashboard | `--no-dashboard` |
+All mission scripts share the same interface.
 
----
+| Argument | Description |
+|----------|-------------|
+| `--episodes N` | Run multiple episodes |
+| `--fixed` | Run compass-test scenarios |
+| `--spawn X Y Z` | Specify spawn position |
+| `--orient R P Y` | Specify initial orientation |
+| `--no-render` | Disable PyBullet GUI |
+| `--no-dashboard` | Disable telemetry dashboard |
 
-## 🧪 Usage Examples
+Examples:
 
-### 1. Random Spawn (Default)
-The lander spawns at a random position within ±900m horizontally, at 1000m altitude, with random orientation:
 ```bash
-python mission_v1_classic.py
-python mission_v2_direct.py
-python mission_v3_trajectory.py
-```
-
-### 2. Default Fixed Spawn (Compass Test)
-Runs 4 episodes from fixed quadrants (SW, NW, SE, NE) at 1km altitude with 45° tilt on all axes:
-```bash
-python mission_v1_classic.py --fixed
-python mission_v2_direct.py --fixed
-python mission_v3_trajectory.py --fixed
-```
-
-### 3. Custom Spawn Position & Orientation
-```bash
-# Spawn at (-1000, -1000, 1000) with 45° roll, pitch, yaw
-python mission_v1_classic.py --spawn -1000 -1000 1000 --orient 45 45 45
-
-# Spawn at (500, -500, 800) with no initial tilt
-python mission_v2_direct.py --spawn 500 -500 800
-
-# Spawn at (0, 0, 500) straight down — short landing test
-python mission_v3_trajectory.py --spawn 0 0 500 --orient 0 0 0
-```
-
-### 4. With Live Dashboard (via Launcher)
-```bash
-# V1 with dashboard, custom spawn
-./launch_mission.sh v1 --spawn -1000 -1000 1000 --orient 45 45 45
-
-# V2 with dashboard, random spawn
-./launch_mission.sh v2
-
-# V3 without dashboard, compass test
-./launch_mission.sh v3 --no-dashboard --fixed
-```
-
-### 5. Multiple Episodes
-```bash
-# Run 5 random episodes of V1
 python mission_v1_classic.py --episodes 5
 
-# Run 3 random episodes of V2 headless (no GUI)
-python mission_v2_direct.py --episodes 3 --no-render
+python mission_v2_direct.py \
+    --spawn 500 -500 800
+
+python mission_v3_trajectory.py \
+    --spawn -1000 -1000 1000 \
+    --orient 45 45 45
 ```
 
 ---
 
-## 📊 Live Telemetry Dashboard
+# 📊 Live Telemetry Dashboard
 
-The dashboard provides real-time visualization of 6 telemetry panels:
+The telemetry dashboard provides real-time monitoring of mission performance.
 
 | Panel | Metrics |
-|-------|---------|
-| **Altitude & Vertical Speed** | Height (m), Vz (m/s) |
-| **Attitude** | Roll, Pitch, Yaw (degrees) |
-| **Horizontal Velocity** | Vx, Vy (m/s) |
-| **Safety Metrics** | G-Force, Distance to target (m) |
-| **Control Actions** | Main Thrust %, Mean RCS intensity |
-| **Mission Performance** | Cumulative reward, State ID |
+|---------|---------|
+| Altitude & Vertical Speed | Height, Vz |
+| Attitude | Roll, Pitch, Yaw |
+| Horizontal Velocity | Vx, Vy |
+| Safety Metrics | G-Force, Distance to Target |
+| Control Actions | Main Thrust, RCS Activity |
+| Mission Performance | Reward, State Information |
 
-### Running the Dashboard Standalone
+Launch dashboard independently:
+
 ```bash
-# With OSC server (waiting for mission data)
 python live_dashboard.py
+```
 
-# Without OSC server (empty display for testing)
+Without OSC connection:
+
+```bash
 python live_dashboard.py --no-osc
 ```
 
-### Output Reports
-After each episode finishes, a comprehensive performance chart is automatically generated and saved in the `reports/` folder as PNG images.
+Mission reports are automatically generated and saved inside:
+
+```text
+reports/
+```
 
 ---
 
-## 🧠 Theory and Control Techniques
+# 🧠 Controller Architectures
 
-### Mission V1: Classic Decoupled PID
-**Concept:**
-This controller uses a Finite State Machine (FSM) combined with decoupled PID controllers. It separates horizontal movement from vertical movement. To move laterally, it calculates the required horizontal velocity, feeds it into a PID loop, and translates the output into a **Target Pitch/Roll angle**.
+## V1 — Decoupled PID Control
 
-**Pros:**
-- Highly stable and easy to tune.
-- "Safe" flight envelope; the lander always prefers leveling out before descending.
+### Overview
 
-**Cons:**
-- Inefficient and slow trajectory.
-- Stops at invisible "waypoints" before proceeding to the next state, causing a robotic, step-by-step flight path.
+V1 implements a classical control architecture based on a Finite State Machine (FSM) and multiple decoupled PID controllers.
 
-**V1 Test (spawn=-1000 -1000 1000, orient=45 45 45):**
+The controller separates horizontal guidance from vertical descent. Horizontal position errors are converted into desired velocities, which are then translated into target pitch and roll angles. Vertical motion is regulated independently through altitude and velocity control loops.
+
+### Advantages
+
+- Stable behavior across a wide range of initial conditions.
+- Straightforward tuning process.
+- Predictable control response.
+
+### Limitations
+
+- Conservative flight profile.
+- Longer mission duration.
+- Sequential behavior can produce inefficient trajectories.
+
+V1 serves as the baseline controller for the project.
 
 ![V1 Report](reports/mission_v1_ep1_report.png)
 
+---
 
-### Mission V2: Direct Vectoring
-**Concept:**
-Unlike V1, V2 blends transit and landing phases. It uses **Direct Thrust Vectoring** where the horizontal error is mapped directly to a tilted thrust vector. The controller continuously updates its orientation to point the thrust vector opposite to the velocity vector while simultaneously aiming for the landing pad.
+## V2 — Direct Thrust Vectoring
 
-**Pros:**
-- Smooth, continuous, and cinematic flight path.
-- Much faster transit time compared to V1.
+### Overview
 
-**Cons:**
-- Strongly coupled dynamics (pitching to move laterally inherently reduces vertical lift).
-- Difficult to tune the safety envelope to prevent the lander from tumbling at high speeds.
+V2 removes the strict separation between transit and landing phases used in V1.
 
-**V2 Test (spawn=-1000 -1000 1000, orient=45 45 45):**
+Instead of following a sequence of discrete control states, the controller continuously redirects the vehicle's thrust vector toward the desired direction of travel while simultaneously reducing position and velocity errors.
+
+Translation and attitude control become tightly coupled.
+
+### Advantages
+
+- Faster convergence toward the landing target.
+- Smoother trajectories.
+- Reduced transit time.
+
+### Limitations
+
+- More difficult tuning process.
+- Increased sensitivity to disturbances.
+- Strong coupling between translational and rotational dynamics.
 
 ![V2 Report](reports/mission_v2_ep1_report.png)
 
+---
 
-### Mission V3: High-Precision Trajectory Mastery
-**Concept:**
-This is the most advanced controller. It abandons simple error-based PID in favor of **Rigid-Body Dynamics Tracking**. 
-1. It pre-calculates a smooth 3D mathematical curve (e.g., using polynomial splines) from the start position to the target.
-2. It calculates the exact **Reference Position, Velocity, and Acceleration** at every millisecond $t$.
-3. It converts the reference acceleration vector directly into a required Body Frame orientation matrix using Feed-Forward terms.
+## V3 — Reference Trajectory Tracking
 
-**Pros:**
-- Extremely precise (centimeter-level accuracy).
-- Obeys kinematic constraints perfectly (no sudden jerks).
+### Overview
 
-**Cons:**
-- Computationally heavy.
-- Very sensitive to simulation step-size variations ($dt$). If PyBullet stutters, the trajectory tracking error diverges rapidly.
+V3 represents the most advanced controller currently implemented.
 
-**V3 Test (spawn=-1000 -1000 1000, orient=45 45 45):**
+Rather than reacting directly to position errors, the controller first generates a smooth reference trajectory connecting the initial state and the landing target.
+
+At every simulation step, the controller computes:
+
+- Reference position
+- Reference velocity
+- Reference acceleration
+
+The vehicle then tracks these references using rigid-body dynamics and feed-forward control terms.
+
+This transforms the landing problem into a trajectory-following problem rather than a pure error-correction problem.
+
+### Advantages
+
+- High landing precision.
+- Smooth control inputs.
+- Physically consistent motion profiles.
+- Better handling of complex flight paths.
+
+### Limitations
+
+- Higher computational cost.
+- Greater sensitivity to timing errors.
+- More complex implementation.
+
+V3 currently provides the best overall landing performance among the available controllers.
 
 ![V3 Report](reports/mission_v3_ep1_report.png)
 
+---
+
+# 🛰️ Vehicle Model
+
+The simulated vehicle is inspired by the Apollo Lunar Module but simplified to prioritize simulation stability, controllability, and experimentation.
+
+The model preserves the characteristics most relevant to guidance and control research while avoiding unnecessary geometric complexity that would increase simulation cost without improving control fidelity.
+
+The vehicle is represented as a rigid-body system equipped with a main engine and multiple Reaction Control System (RCS) thrusters capable of generating both translational and rotational motion.
+
+## Physical Characteristics
+
+### Dimensions
+
+- Approximate diameter: 4 m
+- Approximate height: 4 m
+- Apollo-inspired geometry
+- 4× mesh scale configuration
+
+### Mass Distribution
+
+| Component | Mass |
+|------------|---------:|
+| Main Body | 3500 kg |
+| Main Engine | 500 kg |
+| RCS Clusters | 400 kg |
+| Landing Legs | 600 kg |
+| Foot Sensors | 0.04 kg |
+| Total | ~5100 kg |
+
+### Main Engine
+
+- Maximum thrust: 22,000 N
+- Body-frame direction: +Z
+- Single primary propulsion unit
+
+### Reaction Control System (RCS)
+
+- 20 individual thrusters
+- Maximum thrust per nozzle: 5,000 N
+- Provides:
+  - Roll control
+  - Pitch control
+  - Yaw control
+  - Lateral translation
 
 ---
 
-## 🛰️ Vehicle & Environment (Physical Model)
+# 🌍 Environment Model
 
-### Vehicle (Lander) — size, mass, and actuators
-The lander is based on **Apollo/Lunar Lander**, but simplified (especially geometry/rig details and mechanisms) to remain stable for RL control—more like “LEGO parts” (clean, modular). It uses **Apollo 4× scaling**, consistent with the scale applied in the mesh/URDF assets.
+The environment simulates planetary landing scenarios under realistic physical constraints.
 
-**Main scale / dimensions (from comments & URDF):**
-- Main body: mesh scale **4×**.
-- URDF comments indicate a **~4 m diameter** and **~4 m height** in the already-scaled (Apollo-scaled) version.
+Each episode begins with configurable position, altitude, and orientation offsets relative to the landing target.
 
-**Mass (URDF link mass summation):**
-- Main body: **3500 kg**
-- Main thruster: **500 kg**
-- RCS (4 clusters): **100 kg each** → total **400 kg**
-- 4 legs: **150 kg each** → total **600 kg**
-- 4 foot sensors: **0.01 kg each** → total **0.04 kg**
-- **Total mass (approx.):** **~5100.04 kg**
+The objective is to safely land inside the designated landing zone while maintaining acceptable velocity and attitude limits.
 
-**Thrusters / control capabilities (per environment code):**
-- **Main thruster**
-  - 1 actuator, max force: **22,000 N**
-  - Thrust direction: **+Z axis** in the body frame
-  - Nozzle position (local): **(0, 0, -6.0) m** (nozzle exit ~6 m below the body center in the model)
-- **RCS (Reaction Control System)**
-  - 20 actuators (4 groups × 5 nozzles)
-  - Max force per nozzle: **5,000 N** (uses `rcs_thruster_force_scale = 5000`)
-  - Cluster origins (local) in the body frame:
-    - front: **(+2.8, 0, 2.4)**
-    - back: **(-2.8, 0, 2.4)**
-    - left: **(0, +2.8, 2.4)**
-    - right: **(0, -2.8, 2.4)**
-  - Nozzle strategy applies forces along **±X / ±Y / ±Z** to control lateral translation and attitude torque.
+## Planetary Modes
 
-### Environment — planets, gravity, wind, and terrain
-The environment simulates **vacuum (no damping)** conditions, but still adds external disturbances to make episodes more realistic and challenging.
+| Planet | Gravity |
+|----------|----------:|
+| Moon | -1.62 m/s² |
+| Earth | -9.80 m/s² |
+| Mars | -3.711 m/s² |
 
-**Planet modes (parameters from the env):**
-| Planet | Gravity (m/s²) | Drag | Wind (optional) |
-|---|---:|---:|---|
-| **Earth** | -9.8 | `drag_coeff` (default 0.5) | default `wind_force=15`, `wind_freq=0.1` |
-| **Moon** (default) | -1.62 | 0.0 (drag off) | wind disabled (`0.0`) |
-| **Mars** | -3.711 | 0.3 | `wind_force=10`, `wind_freq=0.1` |
+## Terrain
 
-**Terrain (procedural heightfield):**
-- Grid: **256 × 256**
-- Area size: uses `mesh_scale=[5,5,1]`
-  - XY sampling distance = **5 m**
-  - Total area ≈ **1.28 km × 1.28 km**
-- Height shaping:
-  - `height_scale = 5.0` (hill amplitude)
-  - height formed from sine/cos combinations + micro-roughness
-- **Flat landing pad**:
-  - flat zone based on radius from center: **r ≤ 30 m** (blend 0 inside)
-  - visual landing pad: **radius 2.5 m** (diameter 5 m)
+Procedural heightfield terrain:
 
-**Physics / timestep**
-- PyBullet: **100 Hz** (`render_fps = 100` → `setTimeStep(1/100)`)
-- No linear/angular/joint damping (vacuum): `linearDamping=0`, `angularDamping=0`, `jointDamping=0`
+- Resolution: 256 × 256
+- Area: approximately 1.28 km × 1.28 km
+- Dedicated landing zone
+- Configurable roughness
+
+## Physics Configuration
+
+- Engine: PyBullet
+- Simulation frequency: 100 Hz
+- Vacuum dynamics
+- Zero damping configuration
 
 ---
 
-## 🌍 Environment Specifications
-
+# 📐 Environment Specifications
 
 | Property | Value |
-|----------|-------|
-| **Observation Space** | 34-dim continuous (previous 17 + current 17) |
-| **Action Space** | 21-dim continuous [0, 1] |
-| **Main Thruster** | 1 actuator (22,000 N max) |
-| **RCS Thrusters** | 20 actuators (4 groups × 5 nozzles, 5,000 N each) |
-| **Planet Modes** | Earth, Moon (default), Mars |
-| **Terrain** | Procedural heightfield (1.28km × 1.28km) with flat landing pad |
-| **Physics Engine** | PyBullet (100 Hz simulation) |
+|-----------|---------|
+| Observation Space | 34-dimensional continuous |
+| Action Space | 21-dimensional continuous |
+| Main Engine | 22,000 N |
+| RCS Thrusters | 20 × 5,000 N |
+| Planetary Modes | Moon, Earth, Mars |
+| Terrain | Procedural Heightfield |
+| Physics Engine | PyBullet |
+| Simulation Rate | 100 Hz |
 
-## 📄 License
-This project is for educational and research purposes.
+---
 
+# 🔬 Future Work
+
+Planned future developments include:
+
+- PPO baseline
+- SAC baseline
+- TD3 baseline
+- Model Predictive Control (MPC)
+- Fuel consumption modelling
+- Sensor noise simulation
+- State estimation pipelines
+- Disturbance rejection experiments
+- Domain randomization
+- Sim-to-real research workflows
+
+The long-term objective is to establish LunarLander3D as a flexible research platform for autonomous landing and spacecraft control.
+
+---
+
+# 📄 License
+
+This project is intended for educational, research, and experimental purposes.
